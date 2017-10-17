@@ -6,14 +6,45 @@ describe("Baste", function()
 	end)
 
 	it("should be able to load relative modules", function()
-		local foo = baste.import("./foo")
+		local simple = baste.import("./simple")
 
-		assert.equal(foo, "bar!")
+		assert.equal(simple, "foo")
+	end)
+
+	it("should load relative modules with explicit file extensions", function()
+		local simple = baste.import("./simple.lua")
+
+		assert.equal(simple, "foo")
+	end)
+
+	it("should cache and normalize module names", function()
+		-- Look at all these ways to refer to the same module!
+		local a = baste.import("./object")
+		local b = baste.import("./object.lua")
+		local c = baste.import("../spec/object")
+		local d = baste.import("../spec/object.lua")
+
+		assert.equal(a, b)
+		assert.equal(b, c)
+		assert.equal(c, d)
 	end)
 
 	it("should be able to load absolute modules", function()
 		local io = baste.import("io")
 
 		assert.not_nil(io)
+	end)
+
+	it("should give access to globals", function()
+		local uses_global = baste.import("./uses_global")
+
+		assert.is.number(uses_global)
+	end)
+
+	it("should propagate nested imports correctly", function()
+		local chain_first = baste.import("./chain_first")
+
+		assert.is.table(chain_first)
+		assert.equal(chain_first.value, "bar")
 	end)
 end)
