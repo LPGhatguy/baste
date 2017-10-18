@@ -10,7 +10,7 @@ function path.normalize(input)
 		-- Remove trailing slashes
 		:gsub("/+$", "")
 		-- Handle .
-		:gsub("^%./", "/")
+		:gsub("^%./", "")
 		:gsub("/%.$", "/")
 		:gsub("/%./", "/")
 		-- Handle ..
