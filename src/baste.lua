@@ -70,6 +70,19 @@ else
 	end
 end
 
+--[[
+	Determines if the error message hints at not being able to open a file.
+	It should hold for Lua 5.1, 5.2, 5.3, and LuaJIT 2.0 and 5.1.
+
+	This check is based on https://www.lua.org/source/5.1/lauxlib.c.html
+
+	This leads me to believe that loadfile should be replaced with loadstring
+	and correct chunk naming.
+]]
+local function isOpenError(err)
+	return err:find("^cannot open") or err:find("^cannot read") or err:find("^cannot reopen")
+end
+
 local loadedModules = {}
 local moduleResults = {}
 
@@ -135,9 +148,7 @@ local function makeImport(current)
 
 					return result
 				else
-					-- This doesn't feel very robust.
-					-- In 5.1, 5.2, 5.3, and LuaJIT 2.0 and 2.1, this holds.
-					if not err:find("^cannot open") then
+					if not isOpenError(err) then
 						error(err, 2)
 					end
 				end
