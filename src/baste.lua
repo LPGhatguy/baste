@@ -108,6 +108,12 @@ local function makeImport(current)
 				table.insert(pathsToTry, path.join(relativeModulePath, "init.lua"))
 			end
 
+			print(string.format("Import call: %s\nRelative to: %s\nPaths tried:\n\t%s",
+				modulePath,
+				current,
+				table.concat(pathsToTry, "\n\t")
+			))
+
 			-- Have we loaded this module before?
 			for _, target in ipairs(pathsToTry) do
 				if loadedModules[target] then
