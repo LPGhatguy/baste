@@ -137,8 +137,7 @@ local function makeImport(current)
 
 					return result
 				else
-					-- I want to see what Travis-CI tells me for each install
-					-- so I'm leaving this in for now.
+					-- Tell me the good news, Travis!
 					print(err)
 				end
 			end
