@@ -1,3 +1,9 @@
+stds.baste = {
+	read_globals = {
+		"import",
+	},
+}
+
 ignore = {
 	"212", -- unused arguments
 	"421", -- shadowing local variable
@@ -13,5 +19,5 @@ files["src/**/*_spec.lua"] = {
 }
 
 files["spec/**/*.lua"] = {
-	std = "+busted",
+	std = "+busted+baste",
 }

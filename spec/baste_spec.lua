@@ -17,6 +17,12 @@ describe("Baste", function()
 		assert.equal(simple, "foo")
 	end)
 
+	it("should load modules in folders", function()
+		local folder_module = baste.import("./folder_module")
+
+		assert.equal(folder_module.bar, "bar")
+	end)
+
 	it("should cache and normalize module names", function()
 		-- Look at all these ways to refer to the same module!
 		local a = baste.import("./object")
@@ -46,5 +52,11 @@ describe("Baste", function()
 
 		assert.is.table(chain_first)
 		assert.equal(chain_first.value, "bar")
+	end)
+
+	it("should throw errors if no files were found", function()
+		assert.has.errors(function()
+			baste.import("nope this does not exist sorry")
+		end)
 	end)
 end)

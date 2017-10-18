@@ -4,7 +4,7 @@ local path = {}
 	Normalize the given path by removing unnecessary slashes, `.`, and `..`.
 ]]
 function path.normalize(input)
-	return input
+	return (input
 		-- Normalize \ and / to /
 		:gsub("[/\\]+", "/")
 		-- Remove trailing slashes
@@ -14,7 +14,7 @@ function path.normalize(input)
 		:gsub("/%.$", "/")
 		:gsub("/%./", "/")
 		-- Handle ..
-		:gsub("[^/]+/%.%./", "")
+		:gsub("[^/]+/%.%./", ""))
 end
 
 --[[
@@ -39,14 +39,14 @@ end
 function path.withoutLeaf(input)
 	input = path.normalize(input)
 
-	return input:match("^(.+)/[^/]+$") or "."
+	return (input:match("^(.+)/[^/]+$")) or "."
 end
 
 --[[
 	Get the file extension of the given path, or nil if there isn't one.
 ]]
 function path.extension(input)
-	return input:match("%.([^./]-)$")
+	return (input:match("%.([^./]-)$"))
 end
 
 --[[
@@ -96,43 +96,57 @@ local function makeImport(current)
 		current = current or debug.getinfo(2, "S").source:sub(2)
 
 		if modulePath:sub(1, 1) == "." then
-			-- Assume a .lua file extension if one wasn't given.
-			if not path.extension(modulePath) then
-				modulePath = modulePath .. ".lua"
-			end
-
 			local currentDirectory = path.withoutLeaf(current)
-			local target = path.join(currentDirectory, modulePath)
+			local relativeModulePath = path.join(currentDirectory, modulePath)
 
-			if loadedModules[target] then
-				return moduleResults[target]
+			local pathsToTry = {
+				relativeModulePath,
+			}
+
+			if not path.extension(modulePath) then
+				table.insert(pathsToTry, relativeModulePath .. ".lua")
+				table.insert(pathsToTry, path.join(relativeModulePath, "init.lua"))
 			end
 
-			-- Hand-craft an environment for the module we're loading
-			-- The module won't be able to iterate over globals!
-			local env = setmetatable({
-				import = makeImport(target),
-			}, {
-				__index = _G,
-				__newindex = _G,
-			})
-
-			local chunk, err = loadWithEnv(target, env)
-
-			if not chunk then
-				-- TODO: check for `./?/init.lua` as well!
-				error(err, 2)
+			-- Have we loaded this module before?
+			for _, target in ipairs(pathsToTry) do
+				if loadedModules[target] then
+					return moduleResults[target]
+				end
 			end
 
-			-- Store that we've loaded the module before executing it in case
-			-- it errors.
-			loadedModules[target] = true
+			-- Let's try to load from these paths!
+			for _, target in ipairs(pathsToTry) do
+				-- Hand-craft an environment for the module we're loading
+				-- The module won't be able to iterate over globals!
+				local env = setmetatable({
+					import = makeImport(target),
+				}, {
+					__index = _G,
+					__newindex = _G,
+				})
 
-			local result = chunk()
+				local chunk, err = loadWithEnv(target, env)
 
-			moduleResults[target] = result
+				if chunk then
+					loadedModules[target] = true
 
-			return result
+					local result = chunk()
+
+					moduleResults[target] = result
+
+					return result
+				else
+					-- I want to see what Travis-CI tells me for each install
+					-- so I'm leaving this in for now.
+					print(err)
+				end
+			end
+
+			-- We didn't find any files, or one of them had a syntax error.
+			-- Hm...
+
+			error("Couldn't load module!")
 		else
 			-- TODO: check `baste_modules` folder (or similar)
 			return require(modulePath)
