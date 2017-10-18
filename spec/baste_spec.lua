@@ -54,6 +54,24 @@ describe("Baste", function()
 		assert.equal(chain_first.value, "bar")
 	end)
 
+	it("should throw errors with malformed invocation", function()
+		assert.has.errors(function()
+			baste.import()
+		end)
+
+		assert.has.errors(function()
+			baste.import(5)
+		end)
+
+		assert.has.errors(function()
+			baste:import()
+		end)
+
+		assert.has.errors(function()
+			baste:import("foo")
+		end)
+	end)
+
 	it("should throw errors if no files were found", function()
 		assert.has.errors(function()
 			baste.import("nope this does not exist sorry")

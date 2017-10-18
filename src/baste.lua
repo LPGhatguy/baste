@@ -18,16 +18,6 @@ function path.normalize(input)
 end
 
 --[[
-	Returns the current leaf node of the path. If it points to a file, this will
-	be the filename.
-]]
-function path.leaf(input)
-	input = path.normalize(input)
-
-	return input:match("[^/]+$")
-end
-
---[[
 	Returns everything except the last node in the path. This will be the folder
 	containing the input path.
 
@@ -93,26 +83,26 @@ local moduleResults = {}
 ]]
 local function makeImport(current)
 	return function(modulePath)
+		if type(modulePath) ~= "string" then
+			local message = "Bad argument #1 to import, expected string but got %s"
+			error(string.format(message, type(modulePath)), 2)
+		end
+
 		current = current or debug.getinfo(2, "S").source:sub(2)
 
+		-- Relative import!
 		if modulePath:sub(1, 1) == "." then
 			local currentDirectory = path.withoutLeaf(current)
 			local relativeModulePath = path.join(currentDirectory, modulePath)
 
-			local pathsToTry = {
-				relativeModulePath,
-			}
+			local pathsToTry = {relativeModulePath}
 
 			if not path.extension(modulePath) then
 				table.insert(pathsToTry, relativeModulePath .. ".lua")
 				table.insert(pathsToTry, path.join(relativeModulePath, "init.lua"))
 			end
 
-			print(string.format("Import call: %s\nRelative to: %s\nPaths tried:\n\t%s",
-				modulePath,
-				current,
-				table.concat(pathsToTry, "\n\t")
-			))
+			-- TODO: Plug-in point for adding additional paths to try
 
 			-- Have we loaded this module before?
 			for _, target in ipairs(pathsToTry) do
@@ -132,6 +122,8 @@ local function makeImport(current)
 					__newindex = _G,
 				})
 
+				-- TODO: Plug-in point for adding extra loaders
+
 				local chunk, err = loadWithEnv(target, env)
 
 				if chunk then
@@ -143,15 +135,21 @@ local function makeImport(current)
 
 					return result
 				else
-					-- Tell me the good news, Travis!
-					print(err)
+					-- This doesn't feel very robust.
+					-- In 5.1, 5.2, 5.3, and LuaJIT 2.0 and 2.1, this holds.
+					if not err:find("^cannot open") then
+						error(err, 2)
+					end
 				end
 			end
 
-			-- We didn't find any files, or one of them had a syntax error.
-			-- Hm...
+			-- We didn't find any modules.
+			local message = string.format("Couldn't import %q, tried:\n\t%s",
+				modulePath,
+				table.concat(pathsToTry, "\n\t")
+			)
 
-			error("Couldn't load module!")
+			error(message, 2)
 		else
 			-- TODO: check `baste_modules` folder (or similar)
 			return require(modulePath)
