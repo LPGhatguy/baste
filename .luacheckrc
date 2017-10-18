@@ -21,3 +21,7 @@ files["src/**/*_spec.lua"] = {
 files["spec/**/*.lua"] = {
 	std = "+busted+baste",
 }
+
+exclude_files = {
+	"spec/malformed.lua",
+}
