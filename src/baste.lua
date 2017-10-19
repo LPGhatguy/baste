@@ -25,6 +25,8 @@
 	SOFTWARE.
 ]]
 
+local baste = {}
+
 local path = {}
 
 --[[
@@ -195,6 +197,6 @@ local function makeImport(current)
 	end
 end
 
-return {
-	import = makeImport(),
-}
+baste.import = makeImport()
+
+return baste
