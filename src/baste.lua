@@ -148,7 +148,7 @@ local function makeImport(current)
 			error(string.format(message, type(modulePath)), 2)
 		end
 
-		current = current or debug.getinfo(2, "S").source:sub(2)
+		current = current or debug.getinfo(2, "S").source:gsub("^@", "")
 
 		-- Relative import!
 		if modulePath:sub(1, 1) == "." then
