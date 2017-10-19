@@ -23,5 +23,5 @@ files["spec/**/*.lua"] = {
 }
 
 exclude_files = {
-	"spec/malformed.lua",
+	"spec/import/malformed.lua",
 }
