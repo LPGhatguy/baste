@@ -27,8 +27,8 @@ describe("Baste", function()
 		-- Look at all these ways to refer to the same module!
 		local a = baste.import("./object")
 		local b = baste.import("./object.lua")
-		local c = baste.import("../spec/object")
-		local d = baste.import("../spec/object.lua")
+		local c = baste.import("../import/object")
+		local d = baste.import("../import/object.lua")
 
 		assert.equal(a, b)
 		assert.equal(b, c)
