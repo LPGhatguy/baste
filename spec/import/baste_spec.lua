@@ -91,4 +91,15 @@ describe("Baste", function()
 			baste.import("./malformed")
 		end)
 	end)
+
+	it("should expose a global when asked", function()
+		-- This test relies on Busted's global insulation.
+		-- If that fails, then the other tests could potentially be flawed.
+
+		baste.global()
+
+		local simple = import("./simple")
+
+		assert.equal(simple, "foo")
+	end)
 end)

@@ -1,6 +1,6 @@
 --[[
 	Baste, a module system for Lua
-	Version 1.1.0
+	Version 1.2.0-dev
 
 	MIT License
 
@@ -28,6 +28,7 @@
 local baste = {}
 
 local path = {}
+baste._path = path
 
 --[[
 	Normalize the given path by removing unnecessary slashes, `.`, and `..`.
@@ -219,5 +220,9 @@ local function makeImport(current)
 end
 
 baste.import = makeImport()
+
+function baste.global()
+	_G.import = baste.import
+end
 
 return baste
