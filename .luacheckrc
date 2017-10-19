@@ -1,3 +1,9 @@
+stds.love = {
+	globals = {
+		"love",
+	},
+}
+
 stds.baste = {
 	read_globals = {
 		"import",
@@ -12,7 +18,7 @@ ignore = {
 	"432", -- shadowing upvalue argument
 }
 
-std = "lua51"
+std = "lua51+love"
 
 files["src/**/*_spec.lua"] = {
 	std = "+busted",

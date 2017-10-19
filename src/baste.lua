@@ -80,10 +80,10 @@ end
 
 -- Abstraction over loadstring and load
 local loadWithEnv
-if loadstring then
+if setfenv then
 	-- 5.1, LuaJIT
 	loadWithEnv = function(source, name, env)
-		local chunk = loadstring(source, name)
+		local chunk, err = loadstring(source, name)
 
 		if not chunk then
 			return nil, err
@@ -118,7 +118,7 @@ if love then
 	local oldReadFile = readFile
 
 	readFile = function(path)
-		local contents, err = love.filesystem.read(path)
+		local contents = love.filesystem.read(path)
 
 		-- It could still exist outside the sandbox!
 		if not contents then
