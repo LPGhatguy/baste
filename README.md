@@ -31,7 +31,10 @@ Some tools try to work around this insanity:
 * Can be used for libraries or applications without leaking (no globals by default!)
 * Distinguishes relative and absolute imports
 * Works predictably in any environment (including Windows!)
-* Supports Lua 5.1, 5.2, 5.3, and LuaJIT 2.0+.
+* Broad support:
+	* Lua 5.1, 5.2, 5.3
+	* LuaJIT 2.0+
+	* LÖVE 0.10+ (partial - path support is kind of odd right now!)
 
 ## Usage
 Put `src/baste.lua` somewhere in your project where it can be loaded by conventional means.

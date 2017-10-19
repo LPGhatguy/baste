@@ -78,15 +78,15 @@ function path.join(...)
 	return path.normalize(table.concat({...}, "/"))
 end
 
--- Handle environment changes between 5.1 and 5.2+
--- Can we feature test this instead of version checking?
+-- Abstraction over loadstring and load
 local loadWithEnv
-if _VERSION == "Lua 5.1" then
-	loadWithEnv = function(filename, env)
-		local chunk, err = loadfile(filename)
+if loadstring then
+	-- 5.1, LuaJIT
+	loadWithEnv = function(source, name, env)
+		local chunk = loadstring(source, name)
 
 		if not chunk then
-			return false, err
+			return nil, err
 		end
 
 		setfenv(chunk, env)
@@ -94,22 +94,39 @@ if _VERSION == "Lua 5.1" then
 		return chunk
 	end
 else
-	loadWithEnv = function(filename, env)
-		return loadfile(filename, "bt", env)
+	-- 5.2+
+	loadWithEnv = function(source, name, env)
+		return load(source, name, "bt", env)
 	end
 end
 
---[[
-	Determines if the error message hints at not being able to open a file.
-	It should hold for Lua 5.1, 5.2, 5.3, and LuaJIT 2.0 and 5.1.
+-- Abstraction over filesystem APIs
+local function readFile(path)
+	local handle, err = io.open(path, "r")
 
-	This check is based on https://www.lua.org/source/5.1/lauxlib.c.html
+	if not handle then
+		return nil, err
+	end
 
-	This leads me to believe that loadfile should be replaced with loadstring
-	and correct chunk naming.
-]]
-local function isOpenError(err)
-	return err:find("^cannot open") or err:find("^cannot read") or err:find("^cannot reopen")
+	local contents = handle:read("*all")
+	handle:close()
+
+	return contents
+end
+
+if love then
+	local oldReadFile = readFile
+
+	readFile = function(path)
+		local contents, err = love.filesystem.read(path)
+
+		-- It could still exist outside the sandbox!
+		if not contents then
+			return oldReadFile(path)
+		end
+
+		return contents
+	end
 end
 
 local loadedModules = {}
@@ -166,26 +183,30 @@ local function makeImport(current)
 
 				-- TODO: Plug-in point for adding extra loaders
 
-				local chunk, err = loadWithEnv(target, env)
+				local source = readFile(target)
 
-				if chunk then
-					loadedModules[target] = true
+				if source then
+					local chunk, err = loadWithEnv(source, target, env)
 
-					local result = chunk()
+					if chunk then
+						loadedModules[target] = true
 
-					moduleResults[target] = result
+						local result = chunk()
 
-					return result
-				else
-					if not isOpenError(err) then
+						moduleResults[target] = result
+
+						return result
+					else
+						-- Syntax error!
 						error(err, 2)
 					end
 				end
 			end
 
 			-- We didn't find any modules.
-			local message = string.format("Couldn't import %q, tried:\n\t%s",
+			local message = string.format("Couldn't import %q from file %s, tried:\n\t%s",
 				modulePath,
+				current,
 				table.concat(pathsToTry, "\n\t")
 			)
 
