@@ -90,7 +90,9 @@ if setfenv then
 			return nil, err
 		end
 
-		setfenv(chunk, env)
+		if env then
+			setfenv(chunk, env)
+		end
 
 		return chunk
 	end
@@ -141,14 +143,14 @@ local moduleResults = {}
 	file's path into the generated function. This also reduces the number of
 	debug library calls.
 ]]
-local function makeImport(current)
+local function makeImport(root)
 	return function(modulePath)
+		local current = root or debug.getinfo(2, "S").source:gsub("^@", "")
+
 		if type(modulePath) ~= "string" then
 			local message = "Bad argument #1 to import, expected string but got %s"
 			error(string.format(message, type(modulePath)), 2)
 		end
-
-		current = current or debug.getinfo(2, "S").source:gsub("^@", "")
 
 		-- Relative import!
 		if modulePath:sub(1, 1) == "." then
@@ -190,10 +192,8 @@ local function makeImport(current)
 					local chunk, err = loadWithEnv(source, target, env)
 
 					if chunk then
-						loadedModules[target] = true
-
 						local result = chunk()
-
+						loadedModules[target] = true
 						moduleResults[target] = result
 
 						return result
@@ -223,6 +223,8 @@ baste.import = makeImport()
 
 function baste.global()
 	_G.import = baste.import
+
+	return baste
 end
 
 return baste
