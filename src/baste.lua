@@ -189,7 +189,7 @@ local function makeImport(root)
 				local source = readFile(target)
 
 				if source then
-					local chunk, err = loadWithEnv(source, target, env)
+					local chunk, err = loadWithEnv(source, "@" .. target, env)
 
 					if chunk then
 						local result = chunk()
