@@ -19,6 +19,18 @@ Implementing relative require in vanilla Lua is problematic, usually requiring p
 
 The `LUA_PATH` environment variable introduces another layer of configuration complexity and platform compatibility nightmare. Because of these issues, you need [layers upon layers of hacks](http://leafo.net/guides/customizing-the-luarocks-tree.html) to make the module system convenient. Even when the module system is made convenient, it's hard to tell where modules will be loaded from on any given system executing your code!
 
+Compare the default `LUA_PATH`/`package.path` across Lua versions:
+
+| Lua Version | `package.path`                        |
+|:----------- |:------------------------------------- |
+| 5.1         | `./?.lua;[system-paths]`              |
+| 5.2         | `[system-paths];./?.lua`              |
+| 5.3         | `[system-paths];./?.lua;./?/init.lua` |
+| LuaJIT      | `./?.lua;[system-paths]`              |
+| LÖVE        | `./?.lua;./?/init.lua;[system-paths]` |
+
+Creating a package that's compatible with all these is a headache!
+
 Some tools try to work around this insanity:
 * LuaRock's default paths and setup
 * [Penlight's `require_here`](http://stevedonovan.github.io/Penlight/api/libraries/pl.app.html#require_here)
