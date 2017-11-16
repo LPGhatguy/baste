@@ -25,8 +25,6 @@
 	SOFTWARE.
 ]]
 
-print(package.path)
-
 local baste = {}
 
 local path = {}

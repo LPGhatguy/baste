@@ -26,7 +26,6 @@ install:
   - luarocks install luafilesystem
 
 script:
-  - export LUA_PATH=";;$LUA_PATH"
   - luacheck src spec
   - busted . --verbose --coverage
 
