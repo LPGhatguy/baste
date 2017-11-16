@@ -31,6 +31,20 @@ Compare the default `LUA_PATH`/`package.path` across Lua versions:
 
 Creating a package that's compatible with all these is a headache!
 
+Furthermore, if you want to make a package that users can drop into their codebase wherever, you have to resort to crazy pattern matching, like:
+
+```lua
+local modules  = (...):gsub('%.[^%.]+$', '') .. "."
+local utils    = require(modules .. "utils")
+```
+(taken from [here](https://github.com/excessive/cpml/blob/e3cafd6c2fc46fbc4a52763e8662226301fbfacf/modules/color.lua#L4))
+
+Instead of what you actually want to write:
+
+```lua
+local utils = import("./utlis")
+```
+
 Some tools try to work around this insanity:
 * LuaRock's default paths and setup
 * [Penlight's `require_here`](http://stevedonovan.github.io/Penlight/api/libraries/pl.app.html#require_here)
@@ -46,10 +60,10 @@ Some tools try to work around this insanity:
 * Broad support:
 	* Lua 5.1, 5.2, 5.3
 	* LuaJIT 2.0+
-	* LÖVE 0.10+ (partial - path support is kind of odd right now!)
+	* LÖVE 0.10.0+
 
 ## Usage
-Put `src/baste.lua` somewhere in your project where it can be loaded by conventional means.
+Put `src/baste.lua` somewhere in your project and load it using `require`.
 
 Use `baste.import(path)` to load your first module. Any modules loaded by Baste will have access to a new function called `import` that functions the same way as `baste.import`.
 
